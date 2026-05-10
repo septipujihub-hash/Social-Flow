@@ -7,6 +7,7 @@ import PlannerPage from './pages/Planner';
 import IdeaBoard from './pages/IdeaBoard';
 import AnalyticsPage from './pages/Analytics';
 import SettingsPage from './pages/Settings';
+import PricingPage from './pages/Pricing';
 
 // Simple placeholder components for other pages
 const PostsPage = () => (
@@ -77,6 +78,7 @@ function App() {
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="team" element={<TeamPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="pricing" element={<PricingPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

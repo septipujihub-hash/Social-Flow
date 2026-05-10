@@ -53,17 +53,26 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      <div className="mt-auto p-6 bg-slate-50 m-4 rounded-2xl">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-linear-to-br from-emerald-400 to-pink-400 shadow-sm" />
-          <div>
-            <p className="text-xs font-bold text-slate-800">Puji Rahmadani</p>
-            <p className="text-[10px] text-slate-500 font-medium">Pro Plan</p>
+      <div className="mt-auto p-4 m-4">
+        <NavLink to="/pricing" className="block">
+          <div className="p-5 rounded-2xl bg-linear-to-br from-emerald-600 to-emerald-400 text-white relative overflow-hidden group hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-500">
+            <div className="relative z-10">
+              <div className="flex justify-between items-start mb-4">
+                <span className="text-[10px] font-black uppercase tracking-widest opacity-80">Trial Status</span>
+                <span className="text-[10px] font-black bg-white/20 px-2 py-0.5 rounded-md">8 DAYS</span>
+              </div>
+              <p className="text-sm font-bold mb-1">Upgrade to Pro</p>
+              <p className="text-[10px] opacity-70 mb-4 font-medium italic">Unleash full editorial power</p>
+              <div className="w-full h-1.5 bg-white/20 rounded-full mb-4">
+                <div className="w-[45%] h-full bg-white rounded-full" />
+              </div>
+              <button className="w-full py-2 bg-white text-emerald-600 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-emerald-50 transition-colors">
+                {t('upgrade_now')}
+              </button>
+            </div>
+            <div className="absolute -right-2 -bottom-2 w-20 h-20 bg-white/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-1000" />
           </div>
-        </div>
-        <button className="w-full py-2 bg-white border border-slate-200 text-[10px] font-bold rounded-lg uppercase tracking-wider hover:bg-slate-100 transition-colors">
-          {t('settings')}
-        </button>
+        </NavLink>
       </div>
     </aside>
   );

@@ -9,8 +9,12 @@ import {
   Instagram,
   Facebook,
   Twitter,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Unlock
 } from 'lucide-react';
+import { motion } from 'motion/react';
+import { cn } from '@/src/lib/utils';
+import { NavLink } from 'react-router-dom';
 import { 
   AreaChart, 
   Area, 
@@ -20,8 +24,6 @@ import {
   Tooltip, 
   ResponsiveContainer 
 } from 'recharts';
-import { motion } from 'motion/react';
-import { cn } from '@/src/lib/utils';
 
 const data = [
   { name: 'Mon', value: 400 },
@@ -48,6 +50,28 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-10">
+      {/* Trial Countdown Banner */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-linear-to-r from-emerald-600 via-emerald-500 to-teal-500 p-4 rounded-2xl flex items-center justify-between text-white shadow-xl shadow-emerald-500/20"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center font-display font-black">
+            8
+          </div>
+          <div>
+            <p className="text-sm font-bold">{t('trial_ends_in', { days: 8 })}</p>
+            <p className="text-[10px] opacity-80 font-medium">Upgrade sekarang untuk mempertahankan akses ke fitur Pro & Kolaborasi Tim.</p>
+          </div>
+        </div>
+        <NavLink to="/pricing">
+          <button className="bg-white text-emerald-600 px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-50 transition-all active:scale-95 shadow-lg">
+            Upgrade
+          </button>
+        </NavLink>
+      </motion.div>
+
       <header className="flex justify-between items-end border-b border-slate-100 pb-6">
         <div>
           <h1 className="text-4xl font-display font-medium text-slate-800">
@@ -61,13 +85,14 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title={t('total_content')} value="1,284" growth="↑ 12% dari bulan lalu" color="text-emerald-700" bgColor="bg-emerald-50/50 border-emerald-100" icon={() => null} />
         <StatCard title={t('status_scheduled')} value="24" growth="Untuk 7 hari ke depan" color="text-pink-700" bgColor="bg-pink-50/50 border-pink-100" icon={() => null} />
-        <StatCard title={t('status_draft')} value="08" growth="Butuh persetujuan" color="text-slate-400" bgColor="bg-white" icon={() => null} />
+        <StatCard title={t('usage')} value="42%" growth="Limit penjadwalan" color="text-slate-400" bgColor="bg-white" icon={() => null} />
         <StatCard title="Engagement" value="4.2%" growth="Statistik rata-rata" color="text-emerald-600" bgColor="bg-white" icon={() => null} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* Performance Chart */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-8">
+           {/* Section Header */}
           <div className="flex justify-between items-center">
             <h3 className="text-xl font-display text-slate-800">{t('upcoming_posts')}</h3>
             <button className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest hover:underline transition-all">Lihat Kalender →</button>
@@ -75,11 +100,14 @@ const Dashboard = () => {
           
           <div className="space-y-4">
             {[
-              { platform: 'Instagram', time: '14:00 WIB', title: '5 Tips Memulai Bisnis Coffee Shop', type: 'Carousel', status: 'Scheduled', icon: 'Scheduled', statusBg: 'bg-emerald-100 text-emerald-700' },
-              { platform: 'TikTok', time: 'Besok, 10:00 WIB', title: 'VLOG: Sehari di Kantor Startup', type: 'Video', status: 'Drafting', icon: 'Drafting', statusBg: 'bg-pink-100 text-pink-700' },
-              { platform: 'Twitter', time: '26 Mei, 19:00 WIB', title: 'Update Fitur Baru App - Thread', type: 'Thread', status: 'Review', icon: 'Review', statusBg: 'bg-slate-100 text-slate-700' },
+              { platform: 'Instagram', time: '14:00 WIB', title: '5 Tips Memulai Bisnis Coffee Shop', type: 'Carousel', status: 'Scheduled', icon: 'Scheduled', statusBg: 'bg-emerald-100 text-emerald-700', isLocked: false },
+              { platform: 'TikTok', time: 'Besok, 10:00 WIB', title: 'VLOG: Sehari di Kantor Startup', type: 'Video', status: 'Drafting', icon: 'Drafting', statusBg: 'bg-pink-100 text-pink-700', isLocked: false },
+              { platform: 'Meta Ads', time: 'Promoted', title: 'Campaign: Summer Sale 2024', type: 'Ad', status: 'Business Feature', icon: 'Locked', statusBg: 'bg-slate-100 text-slate-400', isLocked: true },
             ].map((post, i) => (
-              <div key={i} className="glass-card p-5 flex items-center justify-between group hover:scale-[1.01] transition-transform cursor-pointer">
+              <div key={i} className={cn(
+                "glass-card p-5 flex items-center justify-between group transition-all cursor-pointer relative overflow-hidden",
+                post.isLocked ? "bg-slate-50/50 grayscale opacity-70" : "hover:scale-[1.01]"
+              )}>
                 <div className="flex items-center gap-5">
                   <div className="w-12 h-12 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center font-display text-slate-400 text-xs shadow-inner uppercase">
                     {post.platform.substring(0, 1)}
@@ -89,9 +117,43 @@ const Dashboard = () => {
                     <p className="text-xs text-slate-400 font-medium mt-0.5">{post.platform} • {post.type} • {post.time}</p>
                   </div>
                 </div>
-                <span className={cn("platform-badge px-3 py-1", post.statusBg)}>{post.status}</span>
+                <div className="flex items-center gap-3">
+                  {post.isLocked && <Unlock className="w-4 h-4 text-emerald-500 animate-pulse" />}
+                  <span className={cn("platform-badge px-3 py-1", post.statusBg)}>{post.status}</span>
+                </div>
+                {post.isLocked && (
+                  <div className="absolute inset-0 bg-white/10 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                     <NavLink to="/pricing">
+                       <button className="bg-slate-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl">Buka Fitur Business</button>
+                     </NavLink>
+                  </div>
+                )}
               </div>
             ))}
+          </div>
+
+          {/* Usage Visualization */}
+          <div className="glass-card p-8 bg-linear-to-br from-slate-900 to-slate-800 text-white relative overflow-hidden">
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+              <div className="space-y-2">
+                <h4 className="text-lg font-display font-medium">Batas Penggunaan Paket Pro</h4>
+                <p className="text-xs text-slate-400 max-w-xs">Anda telah menggunakan 42 dari 100 konten terjadwal bulan ini.</p>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="relative w-24 h-24">
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/10" />
+                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={251.2} strokeDashoffset={251.2 * (1 - 0.42)} className="text-emerald-500" strokeLinecap="round" />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center font-display font-bold text-xl">42%</div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-50 text-emerald-400">Status</p>
+                  <p className="text-sm font-bold">Aman</p>
+                </div>
+              </div>
+            </div>
+            <div className="absolute -right-20 -top-20 w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl" />
           </div>
         </div>
 

@@ -25,6 +25,10 @@
     @apply bg-white/70 backdrop-blur-xl border border-white/40;
   }
   
+  .gradient-bg {
+    @apply bg-linear-to-br from-emerald-600 to-emerald-400;
+  }
+
   .glass-card {
     @apply bg-white/70 backdrop-blur-md border border-white/40 rounded-[24px] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)];
   }
