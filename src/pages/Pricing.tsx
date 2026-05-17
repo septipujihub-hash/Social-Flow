@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, Zap, Rocket, Building2, Star } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -7,6 +7,52 @@ import { cn } from '@/src/lib/utils';
 const PricingPage = () => {
   const { t } = useTranslation();
   const [isYearly, setIsYearly] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState<string | null>(null);
+  const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchUserDetails();
+  }, []);
+
+  const fetchUserDetails = async () => {
+    try {
+      const response = await fetch('/api/user-details');
+      const data = await response.json();
+      if (data.subscription) {
+        setCurrentPlanId(data.subscription.plan_id);
+      }
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+    }
+  };
+
+  const handleUpgrade = async (planId: string) => {
+    if (planId === 'free' || planId === currentPlanId) return;
+    
+    setIsSubscribing(planId);
+    try {
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          planId,
+          billingCycle: isYearly ? 'yearly' : 'monthly',
+        }),
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        alert(t('Successfully subscribed!'));
+        await fetchUserDetails();
+      }
+    } catch (error) {
+      console.error('Subscription error:', error);
+    } finally {
+      setIsSubscribing(null);
+    }
+  };
 
   const plans = [
     {
@@ -23,7 +69,7 @@ const PricingPage = () => {
         'Email support'
       ],
       buttonText: t('get_started'),
-      isCurrent: false,
+      isCurrent: currentPlanId === 'free',
       color: 'bg-slate-100 text-slate-800'
     },
     {
@@ -41,7 +87,7 @@ const PricingPage = () => {
         'Priority email support'
       ],
       buttonText: t('upgrade_now'),
-      isCurrent: true,
+      isCurrent: currentPlanId === 'pro',
       highlight: true,
       color: 'bg-emerald-500 text-white',
       badge: t('most_popular')
@@ -61,7 +107,7 @@ const PricingPage = () => {
         'Dedicated account manager'
       ],
       buttonText: t('upgrade_now'),
-      isCurrent: false,
+      isCurrent: currentPlanId === 'business',
       color: 'bg-slate-900 text-white'
     }
   ];
@@ -147,15 +193,22 @@ const PricingPage = () => {
               <div className="absolute inset-0 bg-linear-to-br from-emerald-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none rounded-[24px]" />
             )}
 
-            <button className={cn(
-              "w-full py-4 rounded-2xl font-bold text-sm transition-all duration-300 shadow-xl relative z-10 overflow-hidden group/btn",
-              plan.highlight 
-                ? "bg-emerald-500 text-white shadow-emerald-500/20 hover:shadow-emerald-500/40" 
-                : "bg-slate-900 text-white shadow-slate-900/10 hover:bg-slate-800",
-              plan.isCurrent && "bg-white text-emerald-500 border-2 border-emerald-500 shadow-none hover:translate-y-0 cursor-default"
-            )}>
-              <span className="relative z-10">{plan.isCurrent ? t('current_plan') : plan.buttonText}</span>
-              {plan.highlight && !plan.isCurrent && (
+            <button 
+              onClick={() => handleUpgrade(plan.id)}
+              disabled={isSubscribing !== null || plan.isCurrent}
+              className={cn(
+                "w-full py-4 rounded-2xl font-bold text-sm transition-all duration-300 shadow-xl relative z-10 overflow-hidden group/btn",
+                plan.highlight 
+                  ? "bg-emerald-500 text-white shadow-emerald-500/20 hover:shadow-emerald-500/40" 
+                  : "bg-slate-900 text-white shadow-slate-900/10 hover:bg-slate-800",
+                plan.isCurrent && "bg-white text-emerald-500 border-2 border-emerald-500 shadow-none hover:translate-y-0 cursor-default",
+                isSubscribing === plan.id && "opacity-70 cursor-wait"
+              )}
+            >
+              <span className="relative z-10">
+                {isSubscribing === plan.id ? 'Processing...' : (plan.isCurrent ? t('current_plan') : plan.buttonText)}
+              </span>
+              {plan.highlight && !plan.isCurrent && isSubscribing !== plan.id && (
                 <div className="absolute inset-0 bg-linear-to-r from-emerald-400 to-teal-400 translate-x-[-100%] group-hover/btn:translate-x-0 transition-transform duration-500" />
               )}
             </button>

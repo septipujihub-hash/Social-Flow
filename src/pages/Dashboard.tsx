@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Plus, 
@@ -47,37 +47,58 @@ const StatCard = ({ title, value, growth, icon: Icon, color, bgColor }: any) => 
 
 const Dashboard = () => {
   const { t } = useTranslation();
+  const [sub, setSub] = useState<any>(null);
+
+  useEffect(() => {
+    fetch('/api/user-details')
+      .then(res => res.json())
+      .then(data => setSub(data.subscription))
+      .catch(console.error);
+  }, []);
+
+  const getTrialDaysLeft = (endDateStr: string) => {
+    const end = new Date(endDateStr);
+    const now = new Date();
+    const diffTime = end.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
+  const isBusiness = sub?.plan_id === 'business';
+  const trialDays = sub?.status === 'trialing' ? getTrialDaysLeft(sub.trial_end) : 0;
 
   return (
     <div className="space-y-10">
       {/* Trial Countdown Banner */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-linear-to-r from-emerald-600 via-emerald-500 to-teal-500 p-4 rounded-2xl flex items-center justify-between text-white shadow-xl shadow-emerald-500/20"
-      >
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center font-display font-black">
-            8
+      {sub?.status === 'trialing' && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-linear-to-r from-emerald-600 via-emerald-500 to-teal-500 p-4 rounded-2xl flex items-center justify-between text-white shadow-xl shadow-emerald-500/20"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center font-display font-black">
+              {trialDays}
+            </div>
+            <div>
+              <p className="text-sm font-bold">{t('trial_ends_in', { days: trialDays })}</p>
+              <p className="text-[10px] opacity-80 font-medium">Upgrade sekarang untuk mempertahankan akses ke fitur Pro & Kolaborasi Tim.</p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-bold">{t('trial_ends_in', { days: 8 })}</p>
-            <p className="text-[10px] opacity-80 font-medium">Upgrade sekarang untuk mempertahankan akses ke fitur Pro & Kolaborasi Tim.</p>
-          </div>
-        </div>
-        <NavLink to="/pricing">
-          <button className="bg-white text-emerald-600 px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-50 transition-all active:scale-95 shadow-lg">
-            Upgrade
-          </button>
-        </NavLink>
-      </motion.div>
+          <NavLink to="/pricing">
+            <button className="bg-white text-emerald-600 px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-50 transition-all active:scale-95 shadow-lg">
+              Upgrade
+            </button>
+          </NavLink>
+        </motion.div>
+      )}
 
       <header className="flex justify-between items-end border-b border-slate-100 pb-6">
         <div>
           <h1 className="text-4xl font-display font-medium text-slate-800">
             {t('welcome_back')} <span className="italic">Puji</span>.
           </h1>
-          <p className="text-sm text-slate-400 mt-2">Senin, 24 Mei 2024</p>
+          <p className="text-sm text-slate-400 mt-2">{new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
         </div>
       </header>
 
@@ -85,7 +106,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title={t('total_content')} value="1,284" growth="↑ 12% dari bulan lalu" color="text-emerald-700" bgColor="bg-emerald-50/50 border-emerald-100" icon={() => null} />
         <StatCard title={t('status_scheduled')} value="24" growth="Untuk 7 hari ke depan" color="text-pink-700" bgColor="bg-pink-50/50 border-pink-100" icon={() => null} />
-        <StatCard title={t('usage')} value="42%" growth="Limit penjadwalan" color="text-slate-400" bgColor="bg-white" icon={() => null} />
+        <StatCard title={t('usage')} value={sub?.plan_id === 'free' ? "100%" : "42%"} growth={sub?.plan_id === 'free' ? "Limit tercapai" : "Limit penjadwalan"} color="text-slate-400" bgColor="bg-white" icon={() => null} />
         <StatCard title="Engagement" value="4.2%" growth="Statistik rata-rata" color="text-emerald-600" bgColor="bg-white" icon={() => null} />
       </div>
 
@@ -102,7 +123,7 @@ const Dashboard = () => {
             {[
               { platform: 'Instagram', time: '14:00 WIB', title: '5 Tips Memulai Bisnis Coffee Shop', type: 'Carousel', status: 'Scheduled', icon: 'Scheduled', statusBg: 'bg-emerald-100 text-emerald-700', isLocked: false },
               { platform: 'TikTok', time: 'Besok, 10:00 WIB', title: 'VLOG: Sehari di Kantor Startup', type: 'Video', status: 'Drafting', icon: 'Drafting', statusBg: 'bg-pink-100 text-pink-700', isLocked: false },
-              { platform: 'Meta Ads', time: 'Promoted', title: 'Campaign: Summer Sale 2024', type: 'Ad', status: 'Business Feature', icon: 'Locked', statusBg: 'bg-slate-100 text-slate-400', isLocked: true },
+              { platform: 'Meta Ads', time: 'Promoted', title: 'Campaign: Summer Sale 2024', type: 'Ad', status: isBusiness ? 'Scheduled' : 'Business Feature', icon: isBusiness ? 'Check' : 'Locked', statusBg: isBusiness ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400', isLocked: !isBusiness },
             ].map((post, i) => (
               <div key={i} className={cn(
                 "glass-card p-5 flex items-center justify-between group transition-all cursor-pointer relative overflow-hidden",
@@ -136,20 +157,22 @@ const Dashboard = () => {
           <div className="glass-card p-8 bg-linear-to-br from-slate-900 to-slate-800 text-white relative overflow-hidden">
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
               <div className="space-y-2">
-                <h4 className="text-lg font-display font-medium">Batas Penggunaan Paket Pro</h4>
-                <p className="text-xs text-slate-400 max-w-xs">Anda telah menggunakan 42 dari 100 konten terjadwal bulan ini.</p>
+                <h4 className="text-lg font-display font-medium">Batas Penggunaan Paket {sub?.plan_id === 'free' ? 'Free' : sub?.plan_id === 'business' ? 'Business' : 'Pro'}</h4>
+                <p className="text-xs text-slate-400 max-w-xs">
+                  {sub?.plan_id === 'free' ? 'Anda telah menggunakan semua limit konten terjadwal paket Free.' : `Anda telah menggunakan 42 dari ${sub?.plan_id === 'business' ? '∞' : '100'} konten terjadwal bulan ini.`}
+                </p>
               </div>
               <div className="flex items-center gap-6">
                 <div className="relative w-24 h-24">
                   <svg className="w-full h-full transform -rotate-90">
                     <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/10" />
-                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={251.2} strokeDashoffset={251.2 * (1 - 0.42)} className="text-emerald-500" strokeLinecap="round" />
+                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={251.2} strokeDashoffset={251.2 * (1 - (sub?.plan_id === 'free' ? 1 : 0.42))} className="text-emerald-500" strokeLinecap="round" />
                   </svg>
-                  <div className="absolute inset-0 flex items-center justify-center font-display font-bold text-xl">42%</div>
+                  <div className="absolute inset-0 flex items-center justify-center font-display font-bold text-xl">{sub?.plan_id === 'free' ? '100%' : '42%'}</div>
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] font-black uppercase tracking-widest opacity-50 text-emerald-400">Status</p>
-                  <p className="text-sm font-bold">Aman</p>
+                  <p className="text-sm font-bold">{sub?.plan_id === 'free' ? 'Upgrade' : 'Aman'}</p>
                 </div>
               </div>
             </div>
